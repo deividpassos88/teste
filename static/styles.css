@@ -1,22 +1,29 @@
 :root {
-  --bg: #f3f5f6;
+  --bg: #eef1f3;
   --surface: #ffffff;
-  --surface-muted: #f8f9fa;
-  --ink: #202629;
-  --muted: #697479;
-  --line: #dce1e3;
-  --line-strong: #c6ced1;
-  --teal: #087f73;
-  --teal-dark: #05645c;
-  --teal-soft: #e7f4f1;
+  --surface-muted: #f8fafb;
+  --ink: #16202a;
+  --ink-soft: #3d4a55;
+  --muted: #6a7883;
+  --line: #e2e7ea;
+  --line-strong: #cdd5da;
+  --teal: #0b7a6e;
+  --teal-dark: #095f56;
+  --teal-soft: #e8f5f2;
   --amber: #b96c08;
   --red: #c64040;
-  --sidebar: #20272a;
-  --sidebar-muted: #aab4b8;
-  --radius: 6px;
+  --sidebar: #12191f;
+  --sidebar-soft: #1b242c;
+  --sidebar-muted: #93a1ac;
+  --radius: 8px;
+  --radius-sm: 6px;
+  --shadow-sm: 0 1px 2px rgba(16, 30, 40, 0.06);
+  --shadow-md: 0 4px 14px rgba(16, 30, 40, 0.08);
+  --focus: 0 0 0 3px rgba(11, 122, 110, 0.25);
   font-family: Inter, "Segoe UI", Arial, sans-serif;
   color: var(--ink);
   background: var(--bg);
+  font-feature-settings: "tnum" 1;
 }
 
 * {
@@ -42,14 +49,14 @@ button {
 
 .app-shell {
   display: grid;
-  grid-template-columns: 232px minmax(0, 1fr);
+  grid-template-columns: 246px minmax(0, 1fr);
   min-height: 100vh;
 }
 
 .sidebar {
   position: fixed;
   inset: 0 auto 0 0;
-  width: 232px;
+  width: 246px;
   display: flex;
   flex-direction: column;
   padding: 20px 14px 16px;
@@ -62,8 +69,8 @@ button {
   display: flex;
   align-items: center;
   gap: 11px;
-  padding: 0 8px 22px;
-  border-bottom: 1px solid #394246;
+  padding: 0 8px 20px;
+  border-bottom: 1px solid #26313a;
 }
 
 .brand-mark {
@@ -99,54 +106,71 @@ button {
 }
 
 .nav-label {
-  margin: 0 10px 9px;
-  color: #8f9ba0;
-  font-size: 11px;
+  margin: 0 10px 8px;
+  color: #7c8b96;
+  font-size: 10px;
   font-weight: 700;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
 .manufacturer {
   width: 100%;
-  min-height: 46px;
+  height: 38px;
   display: grid;
-  grid-template-columns: 30px 1fr 8px;
+  grid-template-columns: 26px minmax(0, 1fr) 8px;
   align-items: center;
-  gap: 10px;
-  padding: 7px 9px;
+  gap: 11px;
+  margin-bottom: 1px;
+  padding: 0 9px;
   border: 0;
   border-left: 3px solid transparent;
   background: transparent;
-  color: #dce2e4;
+  color: #c8d2d9;
+  font-size: 13px;
   text-align: left;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
+  transition: background 0.13s ease, color 0.13s ease;
+}
+
+/* Uma linha por montadora, sem cortar o nome: a sidebar foi alargada
+   para 246px e o corpo do item usa 12.5px para caber por inteiro. */
+.manufacturer > span:nth-child(2) {
+  min-width: 0;
+  font-size: 12.5px;
+  line-height: 1.2;
+  white-space: nowrap;
 }
 
 .manufacturer:hover {
-  background: #2b3438;
-}
-
-.manufacturer.active {
-  border-left-color: #51c8b8;
-  background: #303a3e;
+  background: var(--sidebar-soft);
   color: #fff;
 }
 
+.manufacturer.active {
+  border-left-color: #2fd0b8;
+  background: #223038;
+  color: #fff;
+  font-weight: 600;
+}
+
+/* Fundo branco uniforme: os PNGs das montadoras tem recortes e contrastes
+   muito diferentes entre si e sumiam sobre o cinza claro anterior. */
 .maker-mark {
   display: grid;
   place-items: center;
-  width: 30px;
-  height: 30px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
-  background: #e8edef;
+  background: #fff;
   color: #2a3438;
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 800;
 }
 
 .maker-mark img {
-  width: 26px;
-  height: 26px;
+  width: 20px;
+  height: 20px;
   object-fit: contain;
 }
 
@@ -336,7 +360,10 @@ button {
 }
 
 .topbar {
-  height: 78px;
+  position: sticky;
+  top: 0;
+  z-index: 6;
+  height: 82px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -347,15 +374,19 @@ button {
 }
 
 .eyebrow {
-  margin: 0 0 4px;
+  margin: 0 0 5px;
   color: var(--muted);
   font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
 }
 
 h1 {
   margin: 0;
-  font-size: 23px;
-  letter-spacing: 0;
+  font-size: 27px;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
 }
 
 .topbar-actions,
@@ -501,24 +532,41 @@ h1 {
 
 .icon-action,
 .secondary-action {
-  min-height: 36px;
+  min-height: 38px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 7px;
-  border-radius: var(--radius);
-  font-weight: 700;
+  gap: 8px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  transition: background 0.15s ease, box-shadow 0.15s ease;
 }
 
 .icon-action {
-  padding: 0 13px;
+  padding: 0 16px;
   border: 1px solid var(--teal);
   background: var(--teal);
   color: #fff;
+  box-shadow: var(--shadow-sm);
 }
 
 .icon-action:hover {
   background: var(--teal-dark);
+  border-color: var(--teal-dark);
+}
+
+.icon-action:focus-visible,
+.secondary-action:focus-visible,
+.page-button:focus-visible,
+.detail-button:focus-visible,
+.plant-tab:focus-visible,
+.manufacturer:focus-visible,
+.pcp-option:focus-visible,
+.auxiliary-toggle:focus-visible,
+.auxiliary-option:focus-visible {
+  outline: none;
+  box-shadow: var(--focus);
 }
 
 .icon-action:disabled {
@@ -601,7 +649,27 @@ h1 {
   max-height: calc(100vh - 210px);
   overflow: auto;
   border: 1px solid var(--line);
+  border-radius: var(--radius);
   background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  scrollbar-width: thin;
+  scrollbar-color: #b9c4cc transparent;
+}
+
+/* Scrollbar fino: o padrao grosso sobrepunha a ultima linha da grade. */
+.delivery-table-wrap::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.delivery-table-wrap::-webkit-scrollbar-thumb {
+  border: 3px solid #fff;
+  border-radius: 6px;
+  background: #b9c4cc;
+}
+
+.delivery-table-wrap::-webkit-scrollbar-track {
+  background: #fff;
 }
 
 .delivery-table {
@@ -675,57 +743,134 @@ h1 {
   box-shadow: 4px 0 5px rgb(32 38 41 / 8%);
 }
 
-.delivery-table .plant-col strong,
-.delivery-table .plant-col span {
-  display: block;
+/* A planta usa o mesmo badge com sigla da tabela principal, mantendo as
+   duas telas consistentes. */
+.delivery-table .plant-col .plant-badge {
+  font-size: 11.5px;
 }
 
-.delivery-table .plant-col span {
-  margin-top: 2px;
-  color: var(--muted);
-  font-size: 9px;
-}
-
+/* Eixo de dias: rotulo menor e apagado, numero do dia em destaque —
+   distingue o eixo do dado, que antes tinham o mesmo peso. */
 .delivery-day {
-  width: 70px;
-  min-width: 70px;
+  width: 62px;
+  min-width: 62px;
+  padding: 0 8px;
+  color: #8a97a1;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-align: center;
 }
 
 .delivery-day strong {
   display: block;
-  margin-top: 3px;
+  margin-top: 2px;
   color: var(--ink);
-  font-size: 12px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0;
 }
 
+/* Fim de semana como faixa: da ancoragem visual numa grade de 31 colunas. */
+.delivery-day.weekend {
+  background: #e4e9ed;
+}
+
+.delivery-day.weekend strong {
+  color: #7d8892;
+}
+
+.delivery-cell {
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Valor faturado ganha pilula solida: o olho acha o dado imediatamente
+   numa grade majoritariamente vazia. */
 .delivery-cell.has-value {
-  background: var(--teal-soft);
-  color: var(--teal-dark);
-  font-weight: 800;
+  background: #d8ede8;
+  color: #0c5c52;
+  font-size: 12.5px;
+  font-weight: 700;
+  box-shadow: inset 0 0 0 1px #b9ddd5;
 }
 
 .delivery-cell.empty {
-  background: #fbfcfc;
+  background: transparent;
+}
+
+.delivery-cell.empty.weekend,
+.delivery-cell.weekend {
+  background: #f4f6f8;
+}
+
+.delivery-cell.has-value.weekend {
+  background: #cfe8e2;
+}
+
+/* Faturado / Programa / Saldo sao as colunas de decisao do PCP: ficam
+   fixas a direita para nao sairem de vista quando a grade de dias rola.
+   As classes precisam cobrir CABECALHO (total-col...) e CELULA
+   (delivery-total...), senao titulo e dado apontam para colunas
+   diferentes. */
+.total-col,
+.program-col,
+.balance-col,
+.delivery-total,
+.delivery-program,
+.delivery-balance {
+  position: sticky;
+  z-index: 3;
+  width: 116px;
+  min-width: 116px;
+  background: #f4f7f9;
+  text-align: right;
+}
+
+.delivery-table thead .total-col,
+.delivery-table thead .program-col,
+.delivery-table thead .balance-col {
+  z-index: 7;
+  background: #dfe6ea;
 }
 
 .total-col,
+.delivery-total { right: 232px; }
+
 .program-col,
-.balance-col {
-  min-width: 105px;
+.delivery-program { right: 116px; }
+
+.balance-col,
+.delivery-balance { right: 0; }
+
+/* Sombra marcando onde termina a grade rolavel. */
+.delivery-table .total-col,
+.delivery-table .delivery-total {
+  box-shadow: -4px 0 5px rgb(32 38 41 / 8%);
 }
 
 .delivery-total {
-  background: #edf4f7 !important;
-  font-weight: 800;
+  background: #eef3f6 !important;
+  color: var(--ink);
+  font-size: 12.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
 
 .delivery-program input {
-  width: 88px;
+  width: 92px;
   height: 30px;
-  border: 1px solid #8faeb6;
-  border-radius: 4px;
+  border: 1px solid #a7b9c2;
+  border-radius: 5px;
   text-align: right;
-  font-weight: 800;
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.delivery-program input:focus {
+  border-color: var(--teal);
+  box-shadow: var(--focus);
+  outline: none;
 }
 
 .delivery-program input[readonly] {
@@ -987,13 +1132,25 @@ h1 {
 }
 
 .delivery-balance {
-  background: #eaf6ee !important;
+  font-size: 12.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Sem programa cadastrado nao ha saldo: neutro, nao alarme. Pintar 100%
+   das linhas de vermelho esvaziava o sinal de entrega acima do programa. */
+.delivery-balance.neutral {
+  background: #f4f7f9 !important;
+  color: #9aa6ae;
+}
+
+.delivery-balance.under {
+  background: #ecf6f0 !important;
   color: #17653a;
-  font-weight: 800;
 }
 
 .delivery-balance.over {
-  background: #faeaea !important;
+  background: #fbeceb !important;
   color: #a83232;
 }
 
@@ -1035,41 +1192,66 @@ h1 {
 
 .summary-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(160px, 1fr));
-  margin-bottom: 16px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: var(--surface);
+  grid-template-columns: repeat(4, minmax(170px, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
 }
 
 .summary-item {
+  position: relative;
   min-width: 0;
-  padding: 15px 18px;
-  border-right: 1px solid var(--line);
+  padding: 16px 18px 17px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
 }
 
-.summary-item:last-child {
-  border-right: 0;
+/* Faixa de acento com cor por metrica: diferencia os quatro blocos em vez
+   de repetir o mesmo verde quatro vezes. */
+.summary-item::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: var(--teal);
 }
 
+.summary-item:nth-child(2)::before { background: #2f7fb5; }
+.summary-item:nth-child(3)::before { background: #7a5cb8; }
+.summary-item:nth-child(4)::before { background: #b07c1f; }
 
 .summary-item span,
 .summary-item strong {
   display: block;
 }
 
-
 .summary-item span {
-  margin-bottom: 7px;
+  margin-bottom: 8px;
   color: var(--muted);
   font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .summary-item strong {
   overflow: hidden;
-  font-size: 20px;
+  color: var(--ink);
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* A ultima emissao e uma data, nao uma grandeza: reduz para nao competir. */
+.summary-item:last-child strong {
+  font-size: 19px;
+  letter-spacing: -0.01em;
 }
 
 .workspace {
@@ -1081,9 +1263,9 @@ h1 {
 
 .toolbar {
   display: flex;
-  align-items: end;
+  align-items: center;
   gap: 10px;
-  padding: 13px 14px;
+  padding: 14px 16px;
   border-bottom: 1px solid var(--line);
   background: var(--surface-muted);
 }
@@ -1107,39 +1289,66 @@ h1 {
 .search-field input,
 .date-field input {
   width: 100%;
-  height: 36px;
+  height: 38px;
   border: 1px solid var(--line-strong);
-  border-radius: 5px;
+  border-radius: var(--radius-sm);
   background: #fff;
   color: var(--ink);
+  font-size: 13px;
   outline: none;
 }
 
 .search-field input {
-  padding: 0 12px 0 34px;
+  padding: 0 12px 0 36px;
+}
+
+.search-field input::placeholder {
+  color: #93a0a9;
 }
 
 .search-field input:focus,
 .date-field input:focus {
   border-color: var(--teal);
-  box-shadow: 0 0 0 2px var(--teal-soft);
+  box-shadow: var(--focus);
 }
 
+/* Label inline dentro do proprio campo: alinha a toolbar numa unica
+   altura em vez das tres alturas anteriores. */
 .date-field {
-  width: 145px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  padding: 0 10px 0 12px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: #fff;
+}
+
+.date-field:focus-within {
+  border-color: var(--teal);
+  box-shadow: var(--focus);
 }
 
 .date-field span {
-  display: block;
-  margin: 0 0 4px 1px;
   color: var(--muted);
-  font-size: 10px;
-  font-weight: 700;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 .date-field input {
-  padding: 0 8px;
-  font-size: 11px;
+  width: 116px;
+  height: 34px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  font-size: 12px;
+}
+
+.date-field input:focus {
+  border-color: transparent;
+  box-shadow: none;
 }
 
 .secondary-action {
@@ -1201,48 +1410,93 @@ table {
 
 th,
 td {
-  padding: 10px 12px;
-  border-bottom: 1px solid #e8ecee;
+  padding: 0 14px;
   text-align: left;
   vertical-align: middle;
 }
 
+/* Cabecalho escuro: separa claramente da toolbar cinza logo acima. */
 th {
   position: sticky;
   top: 0;
   z-index: 1;
-  background: #f3f5f6;
-  color: #566267;
+  height: 36px;
+  border-bottom: 1px solid #cbd4da;
+  background: #dfe6ea;
+  color: #3f4d57;
   font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
 td {
-  color: #30383c;
-  font-size: 11px;
+  height: 34px;
+  color: var(--ink-soft);
+  font-size: 12px;
+}
+
+/* Sem zebra: com hover ativo, zebra + hover geravam tres tons alternados.
+   Linha divisoria discreta ja basta para guiar o olho. */
+tbody tr {
+  border-bottom: 1px solid #edf0f2;
+  transition: background 0.12s ease;
+}
+
+tbody tr:last-child {
+  border-bottom: 0;
 }
 
 tbody tr:hover {
-  background: #f7fbfa;
+  background: #f2f8f7;
 }
 
-th:nth-child(1) { width: 128px; }
-th:nth-child(2) { width: 92px; }
-th:nth-child(3) { width: 120px; }
-th:nth-child(4) { width: 260px; }
-th:nth-child(5) { width: 170px; }
-th:nth-child(6) { width: 120px; }
-th:nth-child(7) { width: 105px; }
-th:nth-child(8) { width: 110px; }
-th:nth-child(9) { width: 46px; }
+th:nth-child(1) { width: 132px; }
+th:nth-child(2) { width: 78px; }
+th:nth-child(3) { width: 100px; }
+th:nth-child(4) { width: auto; min-width: 180px; }
+th:nth-child(5) { width: 158px; }
+th:nth-child(6) { width: 136px; }
+th:nth-child(7) { width: 104px; }
+th:nth-child(8) { width: 86px; }
+th:nth-child(9) { width: 48px; }
+
+/* Respiro entre QUANTIDADE (alinhada a direita) e PEDIDO. */
+th:nth-child(7),
+td:nth-child(7) {
+  padding-right: 20px;
+}
+
+/* Coluna do botao de detalhe encostava na borda da tabela. */
+th:nth-child(9),
+td:nth-child(9) {
+  padding-right: 10px;
+  padding-left: 0;
+  text-align: center;
+}
 
 .numeric {
   text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Rotulo longo por padrao; a versao curta entra no breakpoint estreito. */
+.col-short {
+  display: none;
+}
+
+/* Quantidade e o dado mais consultado da tela: ganha peso e cor cheia. */
+td.numeric {
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 700;
 }
 
 .product-code {
-  font-weight: 800;
-  color: #1f5550;
+  font-weight: 700;
+  color: #0f5f57;
+  font-variant-numeric: tabular-nums;
 }
 
 .description-cell {
@@ -1251,25 +1505,58 @@ th:nth-child(9) { width: 46px; }
   white-space: nowrap;
 }
 
+/* Neutro: o verde ficava disputando enfase com o codigo do item. */
 .client-code-cell {
   overflow: hidden;
-  color: #1f5550;
-  font-weight: 800;
+  color: var(--ink-soft);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
   text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Planta em UMA linha: sigla da montadora como prefixo discreto, evitando
+   repetir "Volkswagen" por extenso em quase toda linha da tabela. */
+.plant-cell {
+  overflow: hidden;
   white-space: nowrap;
 }
 
 .plant-badge {
   display: inline-flex;
   align-items: center;
-  min-height: 22px;
-  padding: 0 7px;
-  border: 1px solid #cfe3df;
+  gap: 6px;
+  max-width: 100%;
+  overflow: hidden;
+  color: var(--ink-soft);
+  font-size: 12px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.plant-badge em {
+  flex: none;
+  padding: 2px 5px;
   border-radius: 4px;
-  background: var(--teal-soft);
-  color: #28645e;
-  font-size: 10px;
+  background: #e6edf1;
+  color: #4b5b66;
+  font-size: 9.5px;
+  font-style: normal;
   font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+/* Data em linha unica; a hora fica secundaria. */
+.date-cell {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.time-part {
+  margin-left: 7px;
+  color: var(--muted);
+  font-size: 11px;
 }
 
 .detail-button,
@@ -1510,6 +1797,54 @@ dialog::backdrop {
 .dialog-source svg {
   width: 14px;
   height: 14px;
+}
+
+/* Notebooks de 1280-1440: comprime as colunas de largura fixa para que a
+   Descricao (unica flexivel) nao absorva sozinha todo o aperto. */
+@media (max-width: 1440px) {
+  .content {
+    padding: 18px 20px 28px;
+  }
+
+  th,
+  td {
+    padding: 0 10px;
+  }
+
+  th:nth-child(1) { width: 118px; }
+  th:nth-child(2) { width: 70px; }
+  th:nth-child(3) { width: 92px; }
+  th:nth-child(4) { min-width: 150px; }
+  th:nth-child(5) { width: 124px; }
+  th:nth-child(6) { width: 118px; }
+  th:nth-child(7) { width: 86px; }
+  th:nth-child(8) { width: 84px; }
+
+  th:nth-child(7),
+  td:nth-child(7) {
+    padding-right: 14px;
+  }
+
+  /* "Quantidade" nao cabe em 86px: usa "Qtde" sem cortar o rotulo. */
+  .col-long {
+    display: none;
+  }
+
+  .col-short {
+    display: inline;
+  }
+
+  .date-field input {
+    width: 100px;
+  }
+
+  .summary-item strong {
+    font-size: 23px;
+  }
+
+  .summary-item:last-child strong {
+    font-size: 17px;
+  }
 }
 
 @media (max-width: 900px) {

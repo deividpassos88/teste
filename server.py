@@ -67,7 +67,7 @@ STATE = {
     "missing_total": 0,
     "datasul_available": False,
     "recovery_running": False,
-    "recovery_message": "Sequencia ainda nao verificada",
+    "recovery_message": "Sequência ainda não verificada",
 }
 
 
@@ -793,11 +793,11 @@ def refresh_missing_state(share_path, entries=None):
     missing, start_date, _ = find_missing_invoices(entries)
     available = datasul_is_available()
     if not missing:
-        message = f"Sequencia conferida desde {start_date}"
+        message = f"Sequência conferida desde {start_date}"
     elif available:
-        message = f"{len(missing)} nota(s) ainda nao possuem XML na pasta"
+        message = f"{len(missing)} nota(s) ainda não possuem XML na pasta"
     else:
-        message = "Datasul Interactive fechado; recuperacao automatica indisponivel"
+        message = "Datasul Interactive fechado; recuperação automática indisponível"
     update_state(
         missing_invoices=[f"{number:06d}" for number in missing[:MISSING_INVOICE_LIMIT]],
         missing_total=len(missing),
@@ -821,8 +821,8 @@ def recover_missing_invoices(share_path, force=False):
         if len(candidates) > MISSING_INVOICE_LIMIT:
             update_state(
                 recovery_message=(
-                    f"{len(candidates)} lacunas detectadas; recuperacao automatica "
-                    "bloqueada para revisao"
+                    f"{len(candidates)} lacunas detectadas; recuperação automática "
+                    "bloqueada para revisão"
                 )
             )
             return
@@ -916,7 +916,7 @@ def scan_share(share_path, force=False):
             phase="parsing",
             message=(
                 f"Processando {len(pending):,} XMLs novos ou alterados"
-                if pending else "Indice ja esta atualizado"
+                if pending else "Índice já está atualizado"
             ),
             files_pending=len(pending),
         )
@@ -971,7 +971,7 @@ def scan_share(share_path, force=False):
         update_state(
             running=False,
             phase="done",
-            message=f"Atualizacao concluida em {elapsed:.1f}s",
+            message=f"Atualização concluída em {elapsed:.1f}s",
             files_processed=processed,
             items_found=items_found,
             errors=errors,

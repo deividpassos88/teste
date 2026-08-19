@@ -49,6 +49,37 @@ function escapeHtml(value) {
     .replaceAll("'", "&#039;");
 }
 
+// Siglas curtas para a coluna Planta: em "Todas montadoras" o nome cheio
+// se repetia em quase toda linha e virava ruido.
+const MAKER_ABBREVIATIONS = {
+  "Volkswagen": "VW",
+  "Uliana Componentes": "UC",
+  "Prima Soles": "PS",
+  "Scania": "SC",
+  "Honda": "HD",
+  "Inalfa": "IA",
+  "Reydel": "RD",
+  "Valeo": "VL",
+  "MWM": "MW",
+  "GM": "GM",
+  "PSA": "PSA",
+};
+
+function abbreviateMaker(name) {
+  const key = String(name ?? "").trim();
+  if (MAKER_ABBREVIATIONS[key]) return MAKER_ABBREVIATIONS[key];
+  return key.slice(0, 2).toUpperCase();
+}
+
+// Data e hora na mesma linha, com a hora secundaria: evita que a coluna
+// quebre em dois niveis e infle a altura de todas as linhas.
+function formatIssueCell(item) {
+  const display = String(item.issue_display || item.issued_at || "").trim();
+  const match = display.match(/^(\d{2}\/\d{2}\/\d{4})\s+(\d{2}:\d{2})/);
+  if (!match) return escapeHtml(display || "—");
+  return `${escapeHtml(match[1])}<span class="time-part">${escapeHtml(match[2])}</span>`;
+}
+
 function refreshIcons() {
   if (window.lucide) window.lucide.createIcons();
 }
@@ -81,9 +112,9 @@ async function loadItems() {
     $("#summary-grid").classList.remove("hidden");
     $$(".date-field").forEach((field) => field.classList.remove("hidden"));
     $("#results-head-row").innerHTML = `
-      <th>Data de emissão</th><th>Nota fiscal</th><th>Item</th>
+      <th>Emissão</th><th>NF</th><th>Item</th>
       <th>Descrição</th><th>Código cliente</th><th>Planta</th>
-      <th class="numeric">Quantidade</th>
+      <th class="numeric"><span class="col-long">Quantidade</span><span class="col-short">Qtde</span></th>
       <th>Pedido</th><th aria-label="Detalhes"></th>
     `;
     const data = await fetchJson(buildItemsUrl());
@@ -158,7 +189,9 @@ function bindPlantTabs() {
 function renderSummary(summary) {
   $("#summary-invoices").textContent = formatNumber(summary.invoice_count, 0);
   $("#summary-items").textContent = formatNumber(summary.item_count, 0);
-  $("#summary-quantity").textContent = formatNumber(summary.total_quantity, 2);
+  // Sem decimal solto no KPI: a soma e da ordem de milhoes e o ",5" so
+  // fazia o numero parecer truncado. O valor exato segue nas linhas.
+  $("#summary-quantity").textContent = formatNumber(summary.total_quantity, 0);
   $("#summary-latest").textContent = formatLatest(summary.latest_issue);
 }
 
@@ -175,20 +208,23 @@ function renderRows() {
   }
 
   hideEmpty();
+  const showMaker = state.manufacturer === "Todas montadoras";
   body.innerHTML = state.items.map((item, index) => `
     <tr>
-      <td>${escapeHtml(item.issue_display || item.issued_at || "—")}</td>
+      <td class="date-cell">${formatIssueCell(item)}</td>
       <td><strong>${escapeHtml(item.invoice_number || "—")}</strong></td>
       <td class="product-code">${escapeHtml(item.product_code || "—")}</td>
       <td class="description-cell" title="${escapeHtml(item.description)}">
         ${escapeHtml(item.description || "—")}
       </td>
       <td class="client-code-cell">${escapeHtml(item.client_code || "—")}</td>
-      <td><span class="plant-badge">${
-        state.manufacturer === "Todas montadoras"
-          ? `${escapeHtml(item.manufacturer)} · ${escapeHtml(item.plant)}`
-          : escapeHtml(item.plant)
-      }</span></td>
+      <td class="plant-cell">${
+        showMaker && item.manufacturer !== item.plant
+          ? `<span class="plant-badge" title="${escapeHtml(item.manufacturer)} · ${escapeHtml(item.plant)}">` +
+            `<em>${escapeHtml(abbreviateMaker(item.manufacturer))}</em>` +
+            `${escapeHtml(item.plant)}</span>`
+          : `<span class="plant-badge">${escapeHtml(item.plant)}</span>`
+      }</td>
       <td class="numeric"><strong>${formatNumber(item.quantity, 2)}</strong></td>
       <td>${escapeHtml(item.order_number || "—")}</td>
       <td>
@@ -421,6 +457,22 @@ function daysInMonth(month) {
   return new Date(year, monthNumber, 0).getDate();
 }
 
+// Sem programa cadastrado nao existe saldo: pintar tudo de vermelho
+// esvaziava o alarme justamente onde ele importa (entrega acima do
+// programado).
+function deliveryBalanceClass(row) {
+  if (!row.program) return "neutral";
+  return row.balance < 0 ? "over" : "under";
+}
+
+// Sabado/domingo recebem fundo proprio: sem isso a grade de 31 colunas
+// nao tem nenhum ponto de ancoragem visual.
+function isWeekend(month, day) {
+  const [year, monthNumber] = month.split("-").map(Number);
+  const weekday = new Date(year, monthNumber - 1, day).getDay();
+  return weekday === 0 || weekday === 6;
+}
+
 function deliveryDayLabel(month, day) {
   const [year, monthNumber] = month.split("-").map(Number);
   const date = new Date(year, monthNumber - 1, day);
@@ -464,7 +516,9 @@ function renderDeliveryFilters(data) {
 function renderDeliveryTable(rows) {
   const dayCount = daysInMonth(state.deliveryMonth);
   const dayHeaders = Array.from({ length: dayCount }, (_, index) => `
-    <th class="delivery-day">${deliveryDayLabel(state.deliveryMonth, index + 1)}</th>
+    <th class="delivery-day${isWeekend(state.deliveryMonth, index + 1) ? " weekend" : ""}">
+      ${deliveryDayLabel(state.deliveryMonth, index + 1)}
+    </th>
   `).join("");
   $("#delivery-head").innerHTML = `
     <tr>
@@ -475,7 +529,7 @@ function renderDeliveryTable(rows) {
       ${dayHeaders}
       <th class="total-col">Faturado</th>
       <th class="program-col">Programa</th>
-      <th class="balance-col">Saldo a entregar</th>
+      <th class="balance-col" title="Saldo a entregar">Saldo</th>
     </tr>
   `;
 
@@ -483,21 +537,25 @@ function renderDeliveryTable(rows) {
   $("#delivery-body").innerHTML = rows.map((row) => {
     const authorization = state.programAuthorizations[row.manufacturer] || "";
     const days = Array.from({ length: dayCount }, (_, index) => {
+      const weekendClass = isWeekend(state.deliveryMonth, index + 1)
+        ? " weekend"
+        : "";
       const value = row.days[String(index + 1)];
-      if (!value) return `<td class="delivery-cell empty"></td>`;
+      if (!value) return `<td class="delivery-cell empty${weekendClass}"></td>`;
       const invoices = value.invoices.filter(Boolean).join(", ");
       return `
-        <td class="delivery-cell has-value"
+        <td class="delivery-cell has-value${weekendClass}"
             title="NF: ${escapeHtml(invoices || "não informada")}">
-          ${formatNumber(value.quantity, 2)}
+          ${formatNumber(value.quantity, 0)}
         </td>
       `;
     }).join("");
     return `
       <tr>
         <td class="sticky-col plant-col">
-          <strong>${escapeHtml(row.plant)}</strong>
-          <span>${escapeHtml(row.manufacturer)}</span>
+          <span class="plant-badge" title="${escapeHtml(row.manufacturer)} · ${escapeHtml(row.plant)}">
+            <em>${escapeHtml(abbreviateMaker(row.manufacturer))}</em>${escapeHtml(row.plant)}
+          </span>
         </td>
         <td class="sticky-col item-col product-code">${escapeHtml(row.product_code)}</td>
         <td class="sticky-col client-code-col product-code">
@@ -507,9 +565,10 @@ function renderDeliveryTable(rows) {
           ${escapeHtml(row.description)}
         </td>
         ${days}
-        <td class="delivery-total">${formatNumber(row.total, 2)}</td>
+        <td class="delivery-total">${formatNumber(row.total, 0)}</td>
         <td class="delivery-program">
-          <input type="number" min="0" step="1" value="${row.program}"
+          <input type="number" min="0" step="1" placeholder="—"
+                 value="${row.program ? row.program : ""}"
                  ${authorization ? "" : "readonly"}
                  aria-label="Programa de ${escapeHtml(row.product_code)}"
                  title="${authorization
@@ -520,8 +579,8 @@ function renderDeliveryTable(rows) {
                  data-product="${escapeHtml(row.product_code)}"
                  data-auth-token="${escapeHtml(authorization)}">
         </td>
-        <td class="delivery-balance ${row.balance < 0 ? "over" : ""}">
-          ${formatNumber(row.balance, 2)}
+        <td class="delivery-balance ${deliveryBalanceClass(row)}">
+          ${row.program ? formatNumber(row.balance, 0) : "—"}
         </td>
       </tr>
     `;

@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Monitor NF-e | Montadoras</title>
-  <link rel="stylesheet" href="/styles.css?v=20260801-uliana-componentes">
+  <link rel="stylesheet" href="/styles.css?v=20260819-ui">
   <script src="/lucide.min.js?v=0.468.0" defer></script>
-  <script src="/app.js?v=20260801-uliana-componentes" defer></script>
+  <script src="/app.js?v=20260819-ui" defer></script>
 </head>
 <body>
   <div class="app-shell">
@@ -118,7 +118,7 @@
     <main class="main-content">
       <header class="topbar">
         <div>
-          <p class="eyebrow">Página inicial / Montadoras</p>
+          <p class="eyebrow" id="page-eyebrow">Produtos faturados</p>
           <h1 id="page-title">Todas montadoras</h1>
         </div>
         <div class="topbar-actions">
@@ -209,13 +209,13 @@
             <table>
               <thead>
                 <tr id="results-head-row">
-                  <th>Data de emissão</th>
-                  <th>Nota fiscal</th>
+                  <th>Emissão</th>
+                  <th>NF</th>
                   <th>Item</th>
                   <th>Descrição</th>
                   <th>Código cliente</th>
                   <th>Planta</th>
-                  <th class="numeric">Quantidade</th>
+                  <th class="numeric"><span class="col-long">Quantidade</span><span class="col-short">Qtde</span></th>
                   <th>Pedido</th>
                   <th aria-label="Detalhes"></th>
                 </tr>
