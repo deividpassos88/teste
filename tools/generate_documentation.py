@@ -15,7 +15,7 @@ from reportlab.platypus import (
 from reportlab.pdfgen import canvas
 
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "output" / "pdf" / "Documentacao_Tecnica_e_Funcional_NFe_Monitor.pdf"
 TMP = ROOT / "tmp" / "pdfs"
 OUT.parent.mkdir(parents=True, exist_ok=True)

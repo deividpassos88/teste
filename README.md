@@ -27,6 +27,18 @@ Abra `iniciar.bat` ou execute:
 python server.py
 ```
 
+### Senha administrativa
+
+Defina a senha ADM em uma variavel de ambiente antes de iniciar:
+
+```powershell
+set NFE_ADMIN_PASSWORD=sua-senha
+python server.py
+```
+
+Sem a variavel, o sistema continua aceitando a senha historica. Ela nao fica
+mais em texto aberto no codigo: apenas o hash PBKDF2 com salt e versionado.
+
 Acesse `http://localhost:8765`.
 
 O primeiro processamento cria `data/nfe_index.db`. Nas atualizacoes seguintes,
@@ -77,3 +89,15 @@ a solicitacao de administrador do Windows.
 
 O computador que executa `iniciar.bat` precisa permanecer ligado e com o sistema
 em execucao.
+
+O sistema nao depende de internet: os icones sao servidos de
+`static/lucide.min.js`, sem CDN externo.
+
+## Estrutura
+
+- `server.py` - servidor HTTP, indexador e regras de classificacao.
+- `static/` - interface (HTML, CSS, JS e icones locais).
+- `assets/` - logotipos das montadoras.
+- `tools/generate_documentation.py` - gera o PDF em `output/pdf/`.
+- `cleanup_duplicates.py` - remove itens duplicados do indice.
+- `data/` - banco SQLite gerado localmente (fora do controle de versao).

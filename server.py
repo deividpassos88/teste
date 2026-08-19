@@ -12,6 +12,7 @@ import threading
 import time
 from ctypes import wintypes
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from contextlib import contextmanager
 from datetime import datetime, timedelta
 from http import HTTPStatus
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
@@ -30,7 +31,14 @@ ULIANA_COMPONENTES_CFOPS = {"6102", "6103"}
 HONDA_INDUSTRIALIZATION_CFOP = "5124"
 INDEX_RULES_VERSION = "20260801-uliana-componentes"
 AUTO_REFRESH_SECONDS = 5 * 60
-ADMIN_PASSWORD = "719328"
+# Senha administrativa: definida em NFE_ADMIN_PASSWORD. Sem a variavel de
+# ambiente o sistema continua aceitando a senha historica, que fica gravada
+# aqui apenas como hash PBKDF2 com salt (nunca em texto aberto).
+ADMIN_PASSWORD = os.environ.get("NFE_ADMIN_PASSWORD", "").strip()
+ADMIN_PASSWORD_FALLBACK_HASH = (
+    "55eba93633726580735321340af5d8ee:"
+    "3a7df2d78567b8130b7750ef97e91f80a2b091b560d173faa0aff571e8c8e506"
+)
 AUTH_TOKEN_TTL_SECONDS = 8 * 60 * 60
 MAX_WORKERS = 8
 MISSING_INVOICE_LIMIT = 100
@@ -61,6 +69,42 @@ STATE = {
     "recovery_running": False,
     "recovery_message": "Sequencia ainda nao verificada",
 }
+
+
+# Ordem das colunas gravadas em `items` por persist_result.
+# Precisa conter exatamente as chaves montadas em parse_nfe, exceto
+# `source_file` (que nao existe na tabela) e `file_path` (passado a parte).
+ITEM_COLUMNS = (
+    "n_item",
+    "access_key",
+    "invoice_number",
+    "billing_number",
+    "issued_at",
+    "issue_date",
+    "issue_display",
+    "product_code",
+    "ean",
+    "description",
+    "client_code",
+    "ncm",
+    "benefit_code",
+    "cfop",
+    "commercial_unit",
+    "quantity_raw",
+    "quantity",
+    "unit_value",
+    "product_value",
+    "tax_ean",
+    "tax_unit",
+    "tax_quantity",
+    "tax_unit_value",
+    "total_indicator",
+    "order_number",
+    "order_item",
+    "manufacturer",
+    "plant",
+    "source_name",
+)
 
 
 def update_state(**changes):
@@ -304,13 +348,30 @@ def parse_nfe(path):
         return {"status": "error", "items": [], "error": str(error)[:500]}
 
 
-def connect_database():
+def new_database_connection():
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     connection = sqlite3.connect(DATABASE_PATH, timeout=30)
     connection.row_factory = sqlite3.Row
     connection.execute("PRAGMA journal_mode=WAL")
     connection.execute("PRAGMA synchronous=NORMAL")
     return connection
+
+
+@contextmanager
+def connect_database():
+    """Abre a conexao e SEMPRE fecha ao sair do bloco.
+
+    O `with` nativo do sqlite3 controla apenas a transacao (commit no
+    sucesso, rollback no erro) e nunca fecha o descritor. Sem o close
+    explicito cada requisicao vazava file descriptors ate o servidor
+    esbarrar no limite do sistema operacional.
+    """
+    connection = new_database_connection()
+    try:
+        with connection:
+            yield connection
+    finally:
+        connection.close()
 
 
 def initialize_database():
@@ -1164,6 +1225,15 @@ def query_deliveries(params):
     }
 
 
+def is_admin_password(pin):
+    """Confere a senha ADM sem nunca compará-la em texto aberto no codigo."""
+    if not pin:
+        return False
+    if ADMIN_PASSWORD:
+        return hmac.compare_digest(pin, ADMIN_PASSWORD)
+    return verify_pin(pin, ADMIN_PASSWORD_FALLBACK_HASH)
+
+
 def hash_pin(pin, salt=None):
     salt_bytes = bytes.fromhex(salt) if salt else secrets.token_bytes(16)
     digest = hashlib.pbkdf2_hmac(
@@ -1245,7 +1315,7 @@ def authorize_program_change(payload):
     manufacturer = str(payload.get("manufacturer", "")).strip()
     if not manufacturer or manufacturer == "Todas montadoras":
         raise ValueError("Montadora invalida para autorizacao")
-    if hmac.compare_digest(pin, ADMIN_PASSWORD):
+    if is_admin_password(pin):
         return {
             "authorized": True,
             "role": "admin",
@@ -1335,7 +1405,7 @@ def manage_manufacturer_passwords(payload):
 
         if action == "set":
             new_pin = str(payload.get("new_pin", "")).strip()
-            if hmac.compare_digest(new_pin, ADMIN_PASSWORD):
+            if is_admin_password(new_pin):
                 raise ValueError(
                     "A senha da montadora deve ser diferente da senha ADM"
                 )

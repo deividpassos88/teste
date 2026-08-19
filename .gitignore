@@ -1,0 +1,26 @@
+# Banco de dados local do indice (contem dados fiscais de clientes).
+# E recriado automaticamente na primeira execucao do server.py.
+data/
+*.db
+*.db-wal
+*.db-shm
+
+# Cache do Python
+__pycache__/
+*.py[cod]
+
+# Artefatos intermediarios da geracao de documentacao
+tmp/
+
+# Ambientes virtuais
+.venv/
+venv/
+env/
+
+# Configuracao local (nunca versionar senhas)
+.env
+
+# Sistema operacional
+Thumbs.db
+desktop.ini
+.DS_Store
